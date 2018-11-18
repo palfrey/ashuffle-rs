@@ -40,8 +40,6 @@ extern "C" {
     #[no_mangle]
     pub fn mpd_send_list_all_meta(connection: *mut mpd_connection, path: *const libc::c_char) -> bool;
     #[no_mangle]
-    fn time(__timer: *mut libc::time_t) -> libc::time_t;
-    #[no_mangle]
     pub fn mpd_song_free(song: *mut mpd_song);
     #[no_mangle]
     pub fn mpd_song_get_uri(song: *const mpd_song) -> *const libc::c_char;
