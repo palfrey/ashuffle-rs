@@ -131,8 +131,8 @@ pub unsafe fn list_pop(mut l: *mut list, mut index: libc::c_uint) -> libc::c_int
 /* free all elements of the list */
 pub unsafe fn list_free(mut l: *mut list) -> libc::c_int {
     let mut current: *mut node = (*l).list;
-    let mut tmp: *mut node = 0 as *mut node;
     while !current.is_null() {
+        let mut tmp;
         libc::free((*current).data);
         tmp = current;
         current = (*current).next;

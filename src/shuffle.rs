@@ -37,7 +37,7 @@ pub unsafe fn shuffle_length(mut s: *mut shuffle_chain) -> libc::c_int {
 /* Randomly pick an element added via 'shuffle_add' and return
  * a pointer to it. */
 pub unsafe fn shuffle_pick(mut s: *mut shuffle_chain) -> *const libc::c_void {
-    let mut data: *const libc::c_void = 0 as *const libc::c_void;
+    let mut data;
     fill_window(s);
     /* get the first element off the window */
     data = list::list_at(&mut (*s).window, 0i32 as libc::c_uint);

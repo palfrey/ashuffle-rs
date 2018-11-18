@@ -38,17 +38,16 @@ pub unsafe fn ruleset_accepts_song(
     mut ruleset: *mut list::list,
     mut song: *mut mpd::mpd_song,
 ) -> bool {
-    let mut rule = 0 as *mut rule::song_rule;
     let mut i = 0i32 as libc::c_uint;
     while i < (*ruleset).length {
-        rule = list::list_at(ruleset, i) as *mut rule::song_rule;
+        let mut rule = list::list_at(ruleset, i) as *mut rule::song_rule;
         if !rule::rule_match(rule, song) {
-            return 0 != 0i32;
+            return true;
         } else {
-            i = i.wrapping_add(1)
+            i += 1;
         }
     }
-    return 0 != 1i32;
+    return false;
 }
 
 pub unsafe fn ruleset_accepts_uri(
@@ -56,9 +55,9 @@ pub unsafe fn ruleset_accepts_uri(
     mut ruleset: *mut list::list,
     mut uri: *mut libc::c_char,
 ) -> bool {
-    let mut accepted: bool = 0 != 0i32;
+    let mut accepted: bool = false;
     /* search for the song URI in MPD */
-    mpd::mpd_search_db_songs(mpd, 0 != 1i32);
+    mpd::mpd_search_db_songs(mpd, true);
     mpd::mpd_search_add_uri_constraint(mpd, mpd::MPD_OPERATOR_DEFAULT, uri);
     if mpd::mpd_search_commit(mpd) as libc::c_int != 1i32 {
         mpd_perror(mpd);
@@ -67,14 +66,14 @@ pub unsafe fn ruleset_accepts_uri(
     mpd_perror_if_error(mpd);
     if !song.is_null() {
         if ruleset_accepts_song(ruleset, song) {
-            accepted = 0 != 1i32
+            accepted = true;
         }
         /* free the song we got from MPD */
         mpd::mpd_song_free(song);
         /* even though we're searching for a single song, libmpdclient
          * still acts like we're reading a song list. We read an aditional
          * element to convince MPD this is the end of the song list. */
-        song = mpd::mpd_recv_song(mpd)
+        mpd::mpd_recv_song(mpd);
     } else {
         eprintln!(
             "Song uri \'{:?}\' not found.",
@@ -94,9 +93,8 @@ pub unsafe fn build_songs_file(
     mut check: bool,
 ) -> libc::c_int {
     let mut uri: *mut libc::c_char = 0 as *mut libc::c_char;
-    let mut length = 0i32 as libc::ssize_t;
     let mut ignored: usize = 0;;
-    length = libc::getline(&mut uri, &mut ignored, input);
+    let mut length = libc::getline(&mut uri, &mut ignored, input);
     while 0 == libc::feof(input) && 0 == libc::ferror(input) {
         if length < 1 {
             eprintln!(
@@ -178,11 +176,10 @@ pub unsafe fn try_first(
     mut mpd: *mut mpd::mpd_connection,
     mut songs: *mut shuffle::shuffle_chain,
 ) -> libc::c_int {
-    let mut status = 0 as *mut mpd::mpd_status;
-    status = mpd::mpd_run_status(mpd);
+    let mut status = mpd::mpd_run_status(mpd);
     if status.is_null() {
         libc::puts(mpd::mpd_connection_get_error_message(mpd));
-        return -1i32;
+        return -1;
     } else {
         if mpd::mpd_status_get_state(status) as libc::c_uint
             != mpd::MPD_STATE_PLAY as libc::c_int as libc::c_uint
@@ -193,7 +190,7 @@ pub unsafe fn try_first(
             }
         }
         mpd::mpd_status_free(status);
-        return 0i32;
+        return 0;
     };
 }
 

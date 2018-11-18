@@ -61,8 +61,8 @@ pub unsafe fn rule_add_criteria(
  * False otherwise. */
 
 pub unsafe fn rule_match(mut rule: *mut song_rule, mut song: *const mpd::mpd_song) -> bool {
-    let mut current_matcher: *mut rule_field = 0 as *mut rule_field;
-    let mut tag_value: *const libc::c_char = 0 as *const libc::c_char;
+    let mut current_matcher;
+    let mut tag_value;
     let mut i: libc::c_uint = 0i32 as libc::c_uint;
     while i < (*rule).matchers.length {
         current_matcher = list::list_at(&mut (*rule).matchers, i) as *mut rule_field;
@@ -82,7 +82,7 @@ pub unsafe fn rule_match(mut rule: *mut song_rule, mut song: *const mpd::mpd_son
                 }
             }
         }
-        i = i.wrapping_add(1)
+        i +=1;
     }
     /* If we've passed all the tests, we have a match */
     return 0 != 1i32;
@@ -90,12 +90,12 @@ pub unsafe fn rule_match(mut rule: *mut song_rule, mut song: *const mpd::mpd_son
 /* Free the memory used to store this rule */
 
 pub unsafe fn rule_free(mut rule: *mut song_rule) -> libc::c_int {
-    let mut field: *mut rule_field = 0 as *mut rule_field;
+    let mut field;
     let mut i: libc::c_uint = 0i32 as libc::c_uint;
     while i < (*rule).matchers.length {
         field = list::list_at(&mut (*rule).matchers, i) as *mut rule_field;
         libc::free((*field).value as *mut libc::c_void);
-        i = i.wrapping_add(1)
+        i +=1;
     }
     list::list_free(&mut (*rule).matchers);
     return 0i32;

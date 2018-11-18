@@ -53,7 +53,6 @@ pub unsafe fn ashuffle_options(
 ) -> libc::c_int {
     /* State for the state machine */
     let mut state: parse_state = NO_STATE;
-    let mut transable: bool = 0 != 0i32;
     let mut match_field: *mut libc::c_char = 0 as *mut libc::c_char;
     let mut rule = rule::song_rule {
         type_0: RULE_EXCLUDE,
@@ -65,7 +64,7 @@ pub unsafe fn ashuffle_options(
     let mut type_flag: libc::c_int = -1i32;
     let mut i: libc::c_int = 1i32;
     while i < argc {
-        transable = state_can_trans(state);
+        let mut transable = state_can_trans(state);
         if transable {
             type_flag = rule_type_from_flag(*argv.offset(i as isize))
         }
