@@ -1,0 +1,13 @@
+[package]
+name = "ashuffle"
+version = "0.0.0"
+publish = false
+
+[[bin]]
+name = "ashuffle"
+
+[dependencies]
+libc = { path = "../libc"}
+
+[build-dependencies]
+cc = "1"

@@ -1,0 +1,103 @@
+CC=clang bear make
+
+error: some ELF objects were not compiled with clang
+
+root@docker:~/C2Rust# ./scripts/transpile.py -e ./ashuffle/compile_commands.json -m ashuffle
+exporting ast from args.c
+args.c:27:6: warning: variadic functions are not fully supported.
+bool check_flags(const char * to_check, unsigned count, ...) {
+
+importing ast from ashuffle.c.cbor
+exporting ast from getpass.c
+ importing ast from getpass.c.cbor
+exporting ast from list.c
+ importing ast from list.c.cbor
+exporting ast from rule.c
+ importing ast from rule.c.cbor
+exporting ast from shuffle.c
+ importing ast from shuffle.c.cbor
+ import successful
+ import successful
+ import successful
+ import successful
+ import successful
+ import successful
+translations: 6
+successes...: 6
+failures....: 0
+success
+
+c2rust-build
+Cargo.toml
+main.rs
+
+cargo watch!
+cargo watch -x build
+
+
+#[path = "../src/shuffle.rs"] pub mod shuffle;
+
+
+bool check_flags(const char * to_check, unsigned count, ...) {
+
+extern "C" {
+    pub type mpd_connection;
+    pub type mpd_song;
+    pub type mpd_stats;
+    pub type mpd_status;
+    pub type node;
+    #[no_mangle]
+    fn mpd_connection_new(
+        host: *const libc::c_char,
+        port: libc::c_uint,
+        timeout_ms: libc::c_uint,
+    ) -> *mut mpd_connection;
+
+#[no_mangle]
+fn atoi(__nptr: *const libc::c_char) -> libc::c_int;
+#[no_mangle]
+fn srand(__seed: libc::c_uint);
+#[no_mangle]
+fn free(__ptr: *mut libc::c_void);
+#[no_mangle]
+fn exit(_: libc::c_int) -> !;
+#[no_mangle]
+fn getenv(__name: *const libc::c_char) -> *mut libc::c_char;
+
+
+multiple include bad
+
+pub struct _IO_FILE {
+
+#[no_mangle]
+pub unsafe fn 
+
+pub unsafe fn
+
+#[repr(C)]
+
+expands constants
+Oh gods, macros
+
+also fputs
+libc::stderr - https://github.com/rust-lang/libc/pull/1073 - eprintln!(
+https://github.com/alexcrichton/rust-ffi-examples/tree/master/rust-to-c
+
+else {
+        __assert_fail
+
+condition && "string" , other stuff
+
+rewrite with assert!()
+
+exit(1i32) -> ::std::process:exit(1)
+
+"stuff" as *const u8 as *const libc::c_char
+
+expected isize, found i64
+expected usize, found u32
+- remove types
+
+if *__errno_location() == 22i32 || *__errno_location() == 34i32 {
+look at original code for meanings
+streams::errno_val()
