@@ -4,9 +4,9 @@ pub type __off64_t = libc::c_long;
 pub type __ssize_t = libc::c_long;
 
 pub unsafe fn as_getpass(
-    mut in_stream: *mut libc::FILE,
-    mut out_stream: *mut libc::FILE,
-    mut prompt: *const libc::c_char,
+    in_stream: *mut libc::FILE,
+    out_stream: *mut libc::FILE,
+    prompt: *const libc::c_char,
 ) -> *mut libc::c_char {
     if libc::fwrite(
         prompt as *const libc::c_void,
@@ -21,7 +21,7 @@ pub unsafe fn as_getpass(
         set_echo(out_stream, 0 != 0i32, 0 != 1i32);
         let mut result = 0 as *mut libc::c_char;
         let mut result_size = 0i32 as libc::size_t;
-        let mut result_len: libc::ssize_t = libc::getline(&mut result, &mut result_size, in_stream);
+        let result_len: libc::ssize_t = libc::getline(&mut result, &mut result_size, in_stream);
         if result_len < 0 {
             libc::perror(b"getline (getpass)\x00" as *const u8 as *const libc::c_char);
             ::std::process::exit(1i32);
@@ -32,9 +32,9 @@ pub unsafe fn as_getpass(
     };
 }
 unsafe fn set_echo(
-    mut stream: *mut libc::FILE,
-    mut echo_state: bool,
-    mut echo_nl_state: bool,
+    stream: *mut libc::FILE,
+    echo_state: bool,
+    echo_nl_state: bool,
 ) {
     let mut flags = libc::termios {
         c_iflag: 0,

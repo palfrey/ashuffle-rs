@@ -1,5 +1,5 @@
 use libc;
-pub type size_t = libc::c_ulong;
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct node {
@@ -16,8 +16,8 @@ pub struct list {
  * in conjunction with list_push to add an element to
  * the list) */
 
-pub unsafe fn node_from(mut data: *const libc::c_void, mut size: usize) -> *mut node {
-    let mut node: *mut node = libc::malloc(::std::mem::size_of::<node>() as usize) as *mut node;
+pub unsafe fn node_from(data: *const libc::c_void, size: usize) -> *mut node {
+    let node: *mut node = libc::malloc(::std::mem::size_of::<node>() as usize) as *mut node;
     (*node).data = libc::malloc(size);
     libc::memcpy((*node).data, data, size);
     (*node).next = 0 as *mut node;
@@ -25,7 +25,7 @@ pub unsafe fn node_from(mut data: *const libc::c_void, mut size: usize) -> *mut 
 }
 /* initialize the received list structure */
 
-pub unsafe fn list_init(mut list: *mut list) -> libc::c_int {
+pub unsafe fn list_init(list: *mut list) -> libc::c_int {
     (*list).length = 0i32 as libc::c_uint;
     (*list).list = 0 as *mut node;
     return 0i32;
@@ -33,8 +33,8 @@ pub unsafe fn list_init(mut list: *mut list) -> libc::c_int {
 /* Return a pointer to the data at 'index'. Returns NULL
  * if there's not data at that index */
 
-pub unsafe fn list_at(mut l: *const list, mut index: libc::c_uint) -> *mut libc::c_void {
-    let mut found: *mut node = list_node_at(l, index);
+pub unsafe fn list_at(l: *const list, index: libc::c_uint) -> *mut libc::c_void {
+    let found: *mut node = list_node_at(l, index);
     if found.is_null() {
         return 0 as *mut libc::c_void;
     } else {
@@ -43,7 +43,7 @@ pub unsafe fn list_at(mut l: *const list, mut index: libc::c_uint) -> *mut libc:
 }
 /* get the low-level node at a given index */
 
-pub unsafe fn list_node_at(mut l: *const list, mut index: libc::c_uint) -> *mut node {
+pub unsafe fn list_node_at(l: *const list, mut index: libc::c_uint) -> *mut node {
     /* if there's no data in the list, fail */
     if (*l).list.is_null() {
         return 0 as *mut node;
@@ -64,11 +64,11 @@ pub unsafe fn list_node_at(mut l: *const list, mut index: libc::c_uint) -> *mut 
  * it onto the end of list 'to' */
 
 pub unsafe fn list_pop_push(
-    mut from: *mut list,
-    mut to: *mut list,
-    mut index: libc::c_uint,
+    from: *mut list,
+    to: *mut list,
+    index: libc::c_uint,
 ) -> libc::c_int {
-    let mut extracted: *mut node = list_node_extract(from, index);
+    let extracted: *mut node = list_node_extract(from, index);
     if extracted.is_null() {
         return -1i32;
     } else {
@@ -78,7 +78,7 @@ pub unsafe fn list_pop_push(
 /* remove the current node from the list, but don't free its
  * contents. */
 
-pub unsafe fn list_node_extract(mut l: *mut list, mut index: libc::c_uint) -> *mut node {
+pub unsafe fn list_node_extract(l: *mut list, mut index: libc::c_uint) -> *mut node {
     if (*l).list.is_null() {
         return 0 as *mut node;
     } else {
@@ -105,7 +105,7 @@ pub unsafe fn list_node_extract(mut l: *mut list, mut index: libc::c_uint) -> *m
 }
 /* add an item to the end of the list */
 
-pub unsafe fn list_push(mut l: *mut list, mut n: *mut node) -> libc::c_int {
+pub unsafe fn list_push(l: *mut list, n: *mut node) -> libc::c_int {
     /* allocate a pointer that points to the location we'll
      * eventually store our node into */
     let mut next: *mut *mut node = &mut (*l).list;
@@ -116,25 +116,13 @@ pub unsafe fn list_push(mut l: *mut list, mut n: *mut node) -> libc::c_int {
     (*l).length = (*l).length.wrapping_add(1);
     return 0i32;
 }
-/* Remove the item at 'index' from the list */
 
-pub unsafe fn list_pop(mut l: *mut list, mut index: libc::c_uint) -> libc::c_int {
-    let mut extracted: *mut node = list_node_extract(l, index);
-    if extracted.is_null() {
-        return -1i32;
-    } else {
-        libc::free((*extracted).data);
-        libc::free(extracted as *mut libc::c_void);
-        return 0i32;
-    };
-}
 /* free all elements of the list */
-pub unsafe fn list_free(mut l: *mut list) -> libc::c_int {
+pub unsafe fn list_free(l: *mut list) -> libc::c_int {
     let mut current: *mut node = (*l).list;
     while !current.is_null() {
-        let mut tmp;
         libc::free((*current).data);
-        tmp = current;
+        let tmp = current;
         current = (*current).next;
         libc::free(tmp as *mut libc::c_void);
     }

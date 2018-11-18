@@ -8,13 +8,7 @@ use shuffle;
 use rule;
 use getpass;
 
-pub type rule_type = libc::c_uint;
-pub const RULE_EXCLUDE: rule_type = 0;
-
-/* 25 seconds is the default timeout */
-/* The size of the rolling shuffle window */
-
-pub unsafe fn mpd_perror(mut mpd: *mut mpd::mpd_connection) {
+pub unsafe fn mpd_perror(mpd: *mut mpd::mpd_connection) {
     assert!(mpd::mpd_connection_get_error(mpd) as libc::c_uint
         != mpd::MPD_ERROR_SUCCESS as libc::c_int as libc::c_uint,
         "must be an error present");
@@ -25,22 +19,22 @@ pub unsafe fn mpd_perror(mut mpd: *mut mpd::mpd_connection) {
     process::exit(1);
 }
 
-pub unsafe fn mpd_perror_if_error(mut mpd: *mut mpd::mpd_connection) {
+pub unsafe fn mpd_perror_if_error(mpd: *mut mpd::mpd_connection) {
     if mpd::mpd_connection_get_error(mpd) as libc::c_uint
         != mpd::MPD_ERROR_SUCCESS as libc::c_int as libc::c_uint
     {
         mpd_perror(mpd);
     };
 }
-/* check wheter a song is allowed by the given ruleset */
 
+/* check wheter a song is allowed by the given ruleset */
 pub unsafe fn ruleset_accepts_song(
-    mut ruleset: *mut list::list,
-    mut song: *mut mpd::mpd_song,
+    ruleset: *mut list::list,
+    song: *mut mpd::mpd_song,
 ) -> bool {
-    let mut i = 0i32 as libc::c_uint;
+    let mut i = 0;
     while i < (*ruleset).length {
-        let mut rule = list::list_at(ruleset, i) as *mut rule::song_rule;
+        let rule = list::list_at(ruleset, i) as *mut rule::song_rule;
         if !rule::rule_match(rule, song) {
             return true;
         } else {
@@ -51,9 +45,9 @@ pub unsafe fn ruleset_accepts_song(
 }
 
 pub unsafe fn ruleset_accepts_uri(
-    mut mpd: *mut mpd::mpd_connection,
-    mut ruleset: *mut list::list,
-    mut uri: *mut libc::c_char,
+    mpd: *mut mpd::mpd_connection,
+    ruleset: *mut list::list,
+    uri: *mut libc::c_char,
 ) -> bool {
     let mut accepted: bool = false;
     /* search for the song URI in MPD */
@@ -62,7 +56,7 @@ pub unsafe fn ruleset_accepts_uri(
     if mpd::mpd_search_commit(mpd) as libc::c_int != 1i32 {
         mpd_perror(mpd);
     }
-    let mut song = mpd::mpd_recv_song(mpd);
+    let song = mpd::mpd_recv_song(mpd);
     mpd_perror_if_error(mpd);
     if !song.is_null() {
         if ruleset_accepts_song(ruleset, song) {
@@ -86,11 +80,11 @@ pub unsafe fn ruleset_accepts_uri(
  * the supplied file. */
 
 pub unsafe fn build_songs_file(
-    mut mpd: *mut mpd::mpd_connection,
-    mut ruleset: *mut list::list,
-    mut input: *mut libc::FILE,
-    mut songs: *mut shuffle::shuffle_chain,
-    mut check: bool,
+    mpd: *mut mpd::mpd_connection,
+    ruleset: *mut list::list,
+    input: *mut libc::FILE,
+    songs: *mut shuffle::shuffle_chain,
+    check: bool,
 ) -> libc::c_int {
     let mut uri: *mut libc::c_char = 0 as *mut libc::c_char;
     let mut ignored: usize = 0;;
@@ -133,9 +127,9 @@ pub unsafe fn build_songs_file(
 /* build the list of songs to shuffle from using MPD */
 
 pub unsafe fn build_songs_mpd(
-    mut mpd: *mut mpd::mpd_connection,
-    mut ruleset: *mut list::list,
-    mut songs: *mut shuffle::shuffle_chain,
+    mpd: *mut mpd::mpd_connection,
+    ruleset: *mut list::list,
+    songs: *mut shuffle::shuffle_chain,
 ) -> libc::c_int {
     /* ask for a list of songs */
     if mpd::mpd_send_list_all_meta(mpd, 0 as *const libc::c_char) as libc::c_int != 1i32 {
@@ -164,8 +158,8 @@ pub unsafe fn build_songs_mpd(
  * songs to the queue */
 
 pub unsafe fn queue_random_song(
-    mut mpd: *mut mpd::mpd_connection,
-    mut songs: *mut shuffle::shuffle_chain,
+    mpd: *mut mpd::mpd_connection,
+    songs: *mut shuffle::shuffle_chain,
 ) {
     if mpd::mpd_run_add(mpd, shuffle::shuffle_pick(songs) as *const libc::c_char) as libc::c_int != 1i32 {
         mpd_perror(mpd);
@@ -173,10 +167,10 @@ pub unsafe fn queue_random_song(
 }
 
 pub unsafe fn try_first(
-    mut mpd: *mut mpd::mpd_connection,
-    mut songs: *mut shuffle::shuffle_chain,
+    mpd: *mut mpd::mpd_connection,
+    songs: *mut shuffle::shuffle_chain,
 ) -> libc::c_int {
-    let mut status = mpd::mpd_run_status(mpd);
+    let status = mpd::mpd_run_status(mpd);
     if status.is_null() {
         libc::puts(mpd::mpd_connection_get_error_message(mpd));
         return -1;
@@ -195,19 +189,19 @@ pub unsafe fn try_first(
 }
 
 pub unsafe fn try_enqueue(
-    mut mpd: *mut mpd::mpd_connection,
-    mut songs: *mut shuffle::shuffle_chain,
-    mut options: *mut args::ashuffle_options,
+    mpd: *mut mpd::mpd_connection,
+    songs: *mut shuffle::shuffle_chain,
+    options: *mut args::ashuffle_options,
 ) -> libc::c_int {
-    let mut status = mpd::mpd_run_status(mpd);
+    let status = mpd::mpd_run_status(mpd);
     /* Check for error while fetching the status */
     if status.is_null() {
         /* print the error message from the server */
         libc::puts(mpd::mpd_connection_get_error_message(mpd));
         return -1i32;
     } else {
-        let mut past_last: bool = mpd::mpd_status_get_song_pos(status) == -1i32;
-        let mut queue_empty: bool = mpd::mpd_status_get_queue_length(status) == 0i32 as libc::c_uint;
+        let past_last: bool = mpd::mpd_status_get_song_pos(status) == -1i32;
+        let queue_empty: bool = mpd::mpd_status_get_queue_length(status) == 0i32 as libc::c_uint;
         let mut queue_songs_remaining: libc::c_uint = 0i32 as libc::c_uint;
         if !past_last {
             /* +1 on song_pos because it is zero-indexed */
@@ -264,13 +258,13 @@ pub unsafe fn try_enqueue(
 /* Keep adding songs when the queue runs out */
 
 pub unsafe fn shuffle_idle(
-    mut mpd: *mut mpd::mpd_connection,
-    mut songs: *mut shuffle::shuffle_chain,
-    mut options: *mut args::ashuffle_options,
+    mpd: *mut mpd::mpd_connection,
+    songs: *mut shuffle::shuffle_chain,
+    options: *mut args::ashuffle_options,
 ) -> libc::c_int {
     assert!(mpd::MPD_IDLE_QUEUE as libc::c_int == mpd::MPD_IDLE_PLAYLIST as libc::c_int,
         "QUEUE Now different signal.");
-    let mut idle_mask: libc::c_int = mpd::MPD_IDLE_DATABASE as libc::c_int
+    let idle_mask: libc::c_int = mpd::MPD_IDLE_DATABASE as libc::c_int
         | mpd::MPD_IDLE_QUEUE as libc::c_int
         | mpd::MPD_IDLE_PLAYER as libc::c_int;
     if try_first(mpd, songs) != 0i32 {
@@ -280,13 +274,13 @@ pub unsafe fn shuffle_idle(
     } else {
         loop {
             /* wait till the player state changes */
-            let mut event = mpd::mpd_run_idle_mask(mpd, idle_mask as mpd::mpd_idle);
+            let event = mpd::mpd_run_idle_mask(mpd, idle_mask as mpd::mpd_idle);
             mpd_perror_if_error(mpd);
-            let mut idle_db: bool =
+            let idle_db: bool =
                 0 != event as libc::c_uint & mpd::MPD_IDLE_DATABASE as libc::c_int as libc::c_uint;
-            let mut idle_queue: bool =
+            let idle_queue: bool =
                 0 != event as libc::c_uint & mpd::MPD_IDLE_QUEUE as libc::c_int as libc::c_uint;
-            let mut idle_player: bool =
+            let idle_player: bool =
                 0 != event as libc::c_uint & mpd::MPD_IDLE_PLAYER as libc::c_int as libc::c_uint;
             if idle_db {
                 shuffle::shuffle_free(songs);
@@ -309,10 +303,10 @@ pub unsafe fn shuffle_idle(
     };
 }
 
-pub unsafe fn get_mpd_password(mut mpd: *mut mpd::mpd_connection) {
+pub unsafe fn get_mpd_password(mpd: *mut mpd::mpd_connection) {
     /* keep looping till we get a bad error, or we get a good password. */
     loop {
-        let mut pass: *mut libc::c_char = getpass::as_getpass(
+        let pass: *mut libc::c_char = getpass::as_getpass(
             streams::stdin_file(),
             streams::stdout_file(),
             b"mpd password: \x00" as *const u8 as *const libc::c_char,
@@ -322,7 +316,7 @@ pub unsafe fn get_mpd_password(mut mpd: *mut mpd::mpd_connection) {
         if err as libc::c_uint == mpd::MPD_ERROR_SUCCESS as libc::c_int as libc::c_uint {
             return;
         } else if err as libc::c_uint == mpd::MPD_ERROR_SERVER as libc::c_int as libc::c_uint {
-            let mut server_err = mpd::mpd_connection_get_server_error(mpd);
+            let server_err = mpd::mpd_connection_get_server_error(mpd);
             if server_err as libc::c_int == mpd::MPD_SERVER_ERROR_PASSWORD as libc::c_int {
                 mpd::mpd_connection_clear_error(mpd);
                 eprintln!(
@@ -340,17 +334,17 @@ pub unsafe fn get_mpd_password(mut mpd: *mut mpd::mpd_connection) {
  * a password is obtained from stdin. */
 
 pub unsafe fn check_mpd_password(
-    mut mpd: *mut mpd::mpd_connection,
-    mut password: *mut libc::c_char,
+    mpd: *mut mpd::mpd_connection,
+    password: *mut libc::c_char,
 ) {
-    let mut stats: *mut mpd::mpd_stats = mpd::mpd_run_stats(mpd);
-    let mut err = mpd::mpd_connection_get_error(mpd);
+    let stats: *mut mpd::mpd_stats = mpd::mpd_run_stats(mpd);
+    let err = mpd::mpd_connection_get_error(mpd);
     if err as libc::c_uint == mpd::MPD_ERROR_SUCCESS as libc::c_int as libc::c_uint {
         mpd::mpd_stats_free(stats);
         return;
     } else {
         if err as libc::c_uint == mpd::MPD_ERROR_SERVER as libc::c_int as libc::c_uint {
-            let mut server_err = mpd::mpd_connection_get_server_error(mpd);
+            let server_err = mpd::mpd_connection_get_server_error(mpd);
             if server_err as libc::c_int == mpd::MPD_SERVER_ERROR_PERMISSION as libc::c_int {
                 mpd::mpd_connection_clear_error(mpd);
                 if !password.is_null() {
@@ -369,10 +363,10 @@ pub unsafe fn check_mpd_password(
 }
 
 pub unsafe fn parse_mpd_host(
-    mut mpd_host: *mut libc::c_char,
-    mut o_mpd_host: *mut mpd::mpd_host,
+    mpd_host: *mut libc::c_char,
+    o_mpd_host: *mut mpd::mpd_host,
 ) {
-    let mut at: *mut libc::c_char = libc::strrchr(mpd_host, '@' as i32);
+    let at: *mut libc::c_char = libc::strrchr(mpd_host, '@' as i32);
     if !at.is_null() {
         (*o_mpd_host).host = &mut *at.offset(1isize) as *mut libc::c_char;
         (*o_mpd_host).password = mpd_host;
@@ -382,7 +376,8 @@ pub unsafe fn parse_mpd_host(
         (*o_mpd_host).password = 0 as *mut libc::c_char
     };
 }
-unsafe fn main_0(mut argc: libc::c_int, mut argv: *mut *mut libc::c_char) -> libc::c_int {
+
+pub unsafe fn main_0(argc: libc::c_int, argv: *mut *mut libc::c_char) -> libc::c_int {
     /* attempt to parse out options given on the command line */
     let mut options = args::ashuffle_options {
         ruleset: list::list {
@@ -395,16 +390,15 @@ unsafe fn main_0(mut argc: libc::c_int, mut argv: *mut *mut libc::c_char) -> lib
         queue_buffer: 0,
     };
     args::ashuffle_init(&mut options);
-    let mut status: libc::c_int = args::ashuffle_options(&mut options, argc, argv);
+    let status: libc::c_int = args::ashuffle_options(&mut options, argc, argv);
     if status != 0i32 {
         args::ashuffle_help();
         return status;
     } else {
         /* attempt to connect to MPD */
-        let mut mpd; //: *mut mpd_connection = 0 as *mut mpd_connection;
         /* Attempt to use MPD_HOST variable if available.
          * Otherwise use 'localhost'. */
-        let mut mpd_host_raw: *mut libc::c_char =
+        let mpd_host_raw: *mut libc::c_char =
             (if !libc::getenv(b"MPD_HOST\x00" as *const u8 as *const libc::c_char).is_null() {
                 libc::getenv(b"MPD_HOST\x00" as *const u8 as *const libc::c_char)
             } else {
@@ -417,14 +411,14 @@ unsafe fn main_0(mut argc: libc::c_int, mut argv: *mut *mut libc::c_char) -> lib
         parse_mpd_host(mpd_host_raw, &mut mpd_host);
         /* Same thing for the port, use the environment defined port
          * or the default port */
-        let mut mpd_port: libc::c_uint =
+        let mpd_port: libc::c_uint =
             (if !libc::getenv(b"MPD_PORT\x00" as *const u8 as *const libc::c_char).is_null() {
                 libc::atoi(libc::getenv(b"MPD_PORT\x00" as *const u8 as *const libc::c_char))
             } else {
                 6600i32
             }) as libc::c_uint;
         /* Create a new connection to mpd */
-        mpd = mpd::mpd_connection_new(mpd_host.host, mpd_port, 25000i32 as libc::c_uint);
+        let mpd = mpd::mpd_connection_new(mpd_host.host, mpd_port, 25000i32 as libc::c_uint);
         if mpd.is_null() {
             eprintln!(
                 "Could not connect due to lack of memory."
@@ -503,21 +497,4 @@ unsafe fn main_0(mut argc: libc::c_int, mut argv: *mut *mut libc::c_char) -> lib
             }
         }
     };
-}
-pub fn main() {
-    let mut args: Vec<*mut libc::c_char> = Vec::new();
-    for arg in ::std::env::args() {
-        args.push(
-            ::std::ffi::CString::new(arg)
-                .expect("Failed to convert argument into CString.")
-                .into_raw(),
-        );
-    }
-    args.push(::std::ptr::null_mut());
-    unsafe {
-        ::std::process::exit(main_0(
-            (args.len() - 1) as libc::c_int,
-            args.as_mut_ptr() as *mut *mut libc::c_char,
-        ) as i32)
-    }
 }

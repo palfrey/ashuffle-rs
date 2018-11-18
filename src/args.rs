@@ -2,7 +2,6 @@ use libc;
 use rule;
 use list;
 use streams;
-pub type size_t = libc::c_ulong;
 
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -30,16 +29,14 @@ pub const RULE_VALUE: parse_state = 2;
 pub const RULE: parse_state = 1;
 // Ready for anything!
 pub const NO_STATE: parse_state = 0;
-// 0
 
 pub static mut ARGS_QUEUE_BUFFER_NONE: libc::c_uint = 0i32 as libc::c_uint;
 
-pub unsafe fn ashuffle_init(mut opts: *mut ashuffle_options) -> libc::c_int {
+pub unsafe fn ashuffle_init(opts: *mut ashuffle_options) -> libc::c_int {
     (*opts).queue_only = 0i32 as libc::c_uint;
     (*opts).file_in = 0 as *mut libc::FILE;
     (*opts).check_uris = 0 != 1i32;
     list::list_init(&mut (*opts).ruleset);
-    // 0
     (*opts).queue_buffer = ARGS_QUEUE_BUFFER_NONE;
     return 0i32;
 }
@@ -47,9 +44,9 @@ pub unsafe fn ashuffle_init(mut opts: *mut ashuffle_options) -> libc::c_int {
  * Returns 0 on success, -1 for failure. */
 
 pub unsafe fn ashuffle_options(
-    mut opts: *mut ashuffle_options,
-    mut argc: libc::c_int,
-    mut argv: *mut *mut libc::c_char,
+    opts: *mut ashuffle_options,
+    argc: libc::c_int,
+    argv: *mut *mut libc::c_char,
 ) -> libc::c_int {
     /* State for the state machine */
     let mut state: parse_state = NO_STATE;
@@ -64,7 +61,7 @@ pub unsafe fn ashuffle_options(
     let mut type_flag: libc::c_int = -1i32;
     let mut i: libc::c_int = 1i32;
     while i < argc {
-        let mut transable = state_can_trans(state);
+        let transable = state_can_trans(state);
         if transable {
             type_flag = rule_type_from_flag(*argv.offset(i as isize))
         }
@@ -209,9 +206,9 @@ pub unsafe fn ashuffle_options(
  * ruleset in the list of options */
 
 pub unsafe fn flush_rule(
-    mut state: parse_state,
-    mut opts: *mut ashuffle_options,
-    mut rule: *mut rule::song_rule,
+    state: parse_state,
+    opts: *mut ashuffle_options,
+    rule: *mut rule::song_rule,
 ) -> libc::c_int {
     if state as libc::c_uint == RULE as libc::c_int as libc::c_uint
         && (*rule).matchers.length > 0i32 as libc::c_uint
@@ -231,9 +228,9 @@ pub unsafe fn flush_rule(
  * arguments */
 
 pub unsafe fn check_flags(
-    mut to_check: *const libc::c_char,
-    mut count: libc::c_uint,
-    mut items: *mut *const libc::c_char,
+    to_check: *const libc::c_char,
+    count: libc::c_uint,
+    items: *mut *const libc::c_char,
 ) -> bool {
     let mut out: bool = 0 != 0i32;
     let mut i: libc::c_int = 0i32;
@@ -249,7 +246,7 @@ pub unsafe fn check_flags(
 /* get the enum rule_type type from the option if possible.
  * Otherwise, return -1 */
 
-pub unsafe fn rule_type_from_flag(mut option: *mut libc::c_char) -> libc::c_int {
+pub unsafe fn rule_type_from_flag(option: *mut libc::c_char) -> libc::c_int {
     let mut items: [*const libc::c_char; 2] = [
         b"--exclude\x00" as *const u8 as *const libc::c_char,
         b"-e\x00" as *const u8 as *const libc::c_char,
@@ -263,7 +260,7 @@ pub unsafe fn rule_type_from_flag(mut option: *mut libc::c_char) -> libc::c_int 
 /* check and see if we can transition to a new top-level
  * state from our current state */
 
-pub unsafe fn state_can_trans(mut state: parse_state) -> bool {
+pub unsafe fn state_can_trans(state: parse_state) -> bool {
     if state as libc::c_uint == NO_STATE as libc::c_int as libc::c_uint
         || state as libc::c_uint == RULE as libc::c_int as libc::c_uint
     {

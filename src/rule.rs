@@ -2,7 +2,6 @@ use libc;
 use list;
 use mpd;
 
-pub type size_t = libc::c_ulong;
 pub type rule_type = libc::c_uint;
 pub const RULE_EXCLUDE: rule_type = 0;
 
@@ -19,7 +18,7 @@ pub struct rule_field {
 }
 /* Initialize a rule */
 
-pub unsafe fn rule_init(mut rule: *mut song_rule, mut type_0: rule_type) -> libc::c_int {
+pub unsafe fn rule_init(rule: *mut song_rule, type_0: rule_type) -> libc::c_int {
     /* set the type */
     (*rule).type_0 = type_0;
     /* allocate the field list */
@@ -29,9 +28,9 @@ pub unsafe fn rule_init(mut rule: *mut song_rule, mut type_0: rule_type) -> libc
 /* Add some criteria for this rule to match on */
 
 pub unsafe fn rule_add_criteria(
-    mut rule: *mut song_rule,
-    mut field: *const libc::c_char,
-    mut expected_value: *const libc::c_char,
+    rule: *mut song_rule,
+    field: *const libc::c_char,
+    expected_value: *const libc::c_char,
 ) -> libc::c_int {
     let mut matcher: rule_field = rule_field {
         tag: mpd::MPD_TAG_ARTIST,
@@ -60,7 +59,7 @@ pub unsafe fn rule_add_criteria(
  * negative matches in the case of 'exclude' rules.
  * False otherwise. */
 
-pub unsafe fn rule_match(mut rule: *mut song_rule, mut song: *const mpd::mpd_song) -> bool {
+pub unsafe fn rule_match(rule: *mut song_rule, song: *const mpd::mpd_song) -> bool {
     let mut current_matcher;
     let mut tag_value;
     let mut i: libc::c_uint = 0i32 as libc::c_uint;
@@ -89,7 +88,7 @@ pub unsafe fn rule_match(mut rule: *mut song_rule, mut song: *const mpd::mpd_son
 }
 /* Free the memory used to store this rule */
 
-pub unsafe fn rule_free(mut rule: *mut song_rule) -> libc::c_int {
+pub unsafe fn rule_free(rule: *mut song_rule) -> libc::c_int {
     let mut field;
     let mut i: libc::c_uint = 0i32 as libc::c_uint;
     while i < (*rule).matchers.length {

@@ -1,3 +1,4 @@
+#![allow(unused)]
 use libc;
 use std::ffi::CStr;
 
