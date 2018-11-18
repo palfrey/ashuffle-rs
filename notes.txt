@@ -101,3 +101,7 @@ expected usize, found u32
 if *__errno_location() == 22i32 || *__errno_location() == 34i32 {
 look at original code for meanings
 streams::errno_val()
+
+time_t/ssize_t get specicially defined. Remove them.
+
+https://github.com/rust-lang/rust/issues/43467 - extern types

@@ -15,12 +15,13 @@ impl mpd_host {
     }
 }
 
+// FIXME: Extern type hack. See https://github.com/rust-lang/rust/issues/43467
+pub enum mpd_connection {}
+pub enum mpd_song {}
+pub enum mpd_stats {}
+pub enum mpd_status {}
+
 extern "C" {
-    pub type mpd_connection;
-    pub type mpd_song;
-    pub type mpd_stats;
-    pub type mpd_status;
-    pub type node;
     #[no_mangle]
     pub fn mpd_connection_new(
         host: *const libc::c_char,

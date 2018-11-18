@@ -1,5 +1,3 @@
-#![feature(extern_types)]
-
 #![allow(non_camel_case_types)]
 
 extern crate libc;
