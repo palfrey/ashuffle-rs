@@ -10,14 +10,15 @@ pub struct song_rule {
     pub type_0: rule_type,
     pub matchers: list::list,
 }
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct rule_field {
     pub tag: mpd::mpd_tag_type,
     pub value: *mut libc::c_char,
 }
-/* Initialize a rule */
 
+/* Initialize a rule */
 pub unsafe fn rule_init(rule: *mut song_rule, type_0: rule_type) -> libc::c_int {
     /* set the type */
     (*rule).type_0 = type_0;
@@ -25,8 +26,8 @@ pub unsafe fn rule_init(rule: *mut song_rule, type_0: rule_type) -> libc::c_int 
     list::list_init(&mut (*rule).matchers);
     return 0i32;
 }
-/* Add some criteria for this rule to match on */
 
+/* Add some criteria for this rule to match on */
 pub unsafe fn rule_add_criteria(
     rule: *mut song_rule,
     field: *const libc::c_char,

@@ -202,9 +202,9 @@ pub unsafe fn ashuffle_options(
         return 0i32;
     };
 }
+
 /* if we're in a correct state, then add the rule to the
  * ruleset in the list of options */
-
 pub unsafe fn flush_rule(
     state: parse_state,
     opts: *mut ashuffle_options,

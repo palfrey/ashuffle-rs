@@ -6,16 +6,17 @@ pub struct node {
     pub data: *mut libc::c_void,
     pub next: *mut node,
 }
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct list {
     pub length: libc::c_uint,
     pub list: *mut node,
 }
+
 /* create a new node from the given data (can be used
  * in conjunction with list_push to add an element to
  * the list) */
-
 pub unsafe fn node_from(data: *const libc::c_void, size: usize) -> *mut node {
     let node: *mut node = libc::malloc(::std::mem::size_of::<node>() as usize) as *mut node;
     (*node).data = libc::malloc(size);
@@ -23,16 +24,15 @@ pub unsafe fn node_from(data: *const libc::c_void, size: usize) -> *mut node {
     (*node).next = 0 as *mut node;
     return node;
 }
-/* initialize the received list structure */
 
-pub unsafe fn list_init(list: *mut list) -> libc::c_int {
-    (*list).length = 0i32 as libc::c_uint;
-    (*list).list = 0 as *mut node;
-    return 0i32;
+/* initialize the received list structure */
+pub fn list_init(list: &mut list) {
+    list.length = 0;
+    list.list = 0 as *mut node;
 }
+
 /* Return a pointer to the data at 'index'. Returns NULL
  * if there's not data at that index */
-
 pub unsafe fn list_at(l: *const list, index: libc::c_uint) -> *mut libc::c_void {
     let found: *mut node = list_node_at(l, index);
     if found.is_null() {
@@ -75,9 +75,9 @@ pub unsafe fn list_pop_push(
         return list_push(to, extracted);
     };
 }
+
 /* remove the current node from the list, but don't free its
  * contents. */
-
 pub unsafe fn list_node_extract(l: *mut list, mut index: libc::c_uint) -> *mut node {
     if (*l).list.is_null() {
         return 0 as *mut node;
@@ -126,6 +126,6 @@ pub unsafe fn list_free(l: *mut list) -> libc::c_int {
         current = (*current).next;
         libc::free(tmp as *mut libc::c_void);
     }
-    list_init(l);
+    list_init(&mut *l);
     return 0i32;
 }

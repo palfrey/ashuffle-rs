@@ -392,7 +392,7 @@ pub unsafe fn main_0(argc: libc::c_int, argv: *mut *mut libc::c_char) -> libc::c
     };
     args::ashuffle_init(&mut options);
     let status: libc::c_int = args::ashuffle_options(&mut options, argc, argv);
-    if status != 0i32 {
+    if status != 0 {
         args::ashuffle_help();
         return status;
     } else {
@@ -424,7 +424,7 @@ pub unsafe fn main_0(argc: libc::c_int, argv: *mut *mut libc::c_char) -> libc::c
             eprintln!(
                 "Could not connect due to lack of memory."
             );
-            return 1i32;
+            return 1;
         } else if mpd::mpd_connection_get_error(mpd) as libc::c_uint
             != mpd::MPD_ERROR_SUCCESS as libc::c_int as libc::c_uint
         {
@@ -432,7 +432,7 @@ pub unsafe fn main_0(argc: libc::c_int, argv: *mut *mut libc::c_char) -> libc::c
                 mpd_host.hostname().unwrap(),
                 mpd_port,
             );
-            return 1i32;
+            return 1;
         } else {
             check_mpd_password(mpd, mpd_host.password);
             let mut songs = shuffle::shuffle_chain {
@@ -460,8 +460,8 @@ pub unsafe fn main_0(argc: libc::c_int, argv: *mut *mut libc::c_char) -> libc::c
                 build_songs_mpd(mpd, &mut options.ruleset, &mut songs);
             }
             if shuffle::shuffle_length(&mut songs) == 0 {
-                libc::puts(b"Song pool is empty.\x00" as *const u8 as *const libc::c_char);
-                return -1i32;
+                println!("Song pool is empty.");
+                return -1;
             } else {
                 libc::printf(
                     b"Picking random songs out of a pool of %u.\n\x00" as *const u8
@@ -494,7 +494,7 @@ pub unsafe fn main_0(argc: libc::c_int, argv: *mut *mut libc::c_char) -> libc::c
                 /* free-up our songs */
                 shuffle::shuffle_free(&mut songs);
                 mpd::mpd_connection_free(mpd);
-                return 0i32;
+                return 0;
             }
         }
     };
