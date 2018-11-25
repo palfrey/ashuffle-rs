@@ -7,14 +7,15 @@ use std::process;
 use shuffle;
 use rule;
 use getpass;
+use std::ffi::CStr;
 
 pub unsafe fn mpd_perror(mpd: *mut mpd::mpd_connection) {
-    assert!(mpd::mpd_connection_get_error(mpd) as libc::c_uint
-        != mpd::MPD_ERROR_SUCCESS as libc::c_int as libc::c_uint,
+    assert!(mpd::mpd_connection_get_error(mpd) != mpd::MPD_ERROR_SUCCESS,
         "must be an error present");
+    let err_msg = CStr::from_ptr(mpd::mpd_connection_get_error_message(mpd));
     eprintln!(
-        "MPD error: {:?}",
-        mpd::mpd_connection_get_error_message(mpd),
+        "MPD error: {}",
+        err_msg.to_str().unwrap()
     );
     process::exit(1);
 }
@@ -458,7 +459,7 @@ pub unsafe fn main_0(argc: libc::c_int, argv: *mut *mut libc::c_char) -> libc::c
             } else {
                 build_songs_mpd(mpd, &mut options.ruleset, &mut songs);
             }
-            if shuffle::shuffle_length(&mut songs) == 0i32 {
+            if shuffle::shuffle_length(&mut songs) == 0 {
                 libc::puts(b"Song pool is empty.\x00" as *const u8 as *const libc::c_char);
                 return -1i32;
             } else {
