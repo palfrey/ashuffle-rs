@@ -36,12 +36,24 @@ unsafe fn set_echo(
     echo_state: bool,
     echo_nl_state: bool,
 ) {
+    #[cfg(target_os = "macos")]
     let mut flags = libc::termios {
         c_iflag: 0,
         c_oflag: 0,
         c_cflag: 0,
         c_lflag: 0,
-        c_cc: [0; 20],
+        c_cc: [0; libc::NCCS],
+        c_ispeed: 0,
+        c_ospeed: 0,
+    };
+    #[cfg(not(target_os = "macos"))]
+    let mut flags = libc::termios {
+        c_iflag: 0,
+        c_oflag: 0,
+        c_cflag: 0,
+        c_lflag: 0,
+        c_line: 0,
+        c_cc: [0; libc::NCCS],
         c_ispeed: 0,
         c_ospeed: 0,
     };
