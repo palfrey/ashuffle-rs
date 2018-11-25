@@ -1,83 +1,20 @@
-use libc;
-pub type __off_t = libc::c_long;
-pub type __off64_t = libc::c_long;
-pub type __ssize_t = libc::c_long;
+use std::io;
+use easycurses::EasyCurses;
 
-pub unsafe fn as_getpass(
-    in_stream: *mut libc::FILE,
-    out_stream: *mut libc::FILE,
-    prompt: *const libc::c_char,
-) -> *mut libc::c_char {
-    if libc::fwrite(
-        prompt as *const libc::c_void,
-        libc::strlen(prompt),
-        1i32 as libc::size_t,
-        out_stream,
-    ) != 1
-    {
-        libc::perror(b"getpass (fwrite)\x00" as *const u8 as *const libc::c_char);
-        ::std::process::exit(1i32);
-    } else {
-        set_echo(out_stream, false, true);
-        let mut result = 0 as *mut libc::c_char;
-        let mut result_size = 0i32 as libc::size_t;
-        let result_len: libc::ssize_t = libc::getline(&mut result, &mut result_size, in_stream);
-        if result_len < 0 {
-            libc::perror(b"getline (getpass)\x00" as *const u8 as *const libc::c_char);
+pub fn as_getpass(
+    prompt: &str,
+) -> String {
+    print!("{}", prompt);
+    let mut curses = EasyCurses::initialize_system().unwrap();
+    curses.set_echo(false);
+    let mut result = String::new();
+    match io::stdin().read_line(&mut result) {
+        Err(error) => {
+            println!("read_line issue: {}", error);
             ::std::process::exit(1i32);
-        } else {
-            set_echo(out_stream, true, true);
+        }
+        Ok(_) => {
             return result;
-        }
-    };
-}
-unsafe fn set_echo(
-    stream: *mut libc::FILE,
-    echo_state: bool,
-    echo_nl_state: bool,
-) {
-    #[cfg(target_os = "macos")]
-    let mut flags = libc::termios {
-        c_iflag: 0,
-        c_oflag: 0,
-        c_cflag: 0,
-        c_lflag: 0,
-        c_cc: [0; libc::NCCS],
-        c_ispeed: 0,
-        c_ospeed: 0,
-    };
-    #[cfg(not(target_os = "macos"))]
-    let mut flags = libc::termios {
-        c_iflag: 0,
-        c_oflag: 0,
-        c_cflag: 0,
-        c_lflag: 0,
-        c_line: 0,
-        c_cc: [0; libc::NCCS],
-        c_ispeed: 0,
-        c_ospeed: 0,
-    };
-    let mut res: libc::c_int = libc::tcgetattr(libc::fileno(stream), &mut flags);
-    if res != 0i32 {
-        libc::perror(b"set_echo (tcgetattr)\x00" as *const u8 as *const libc::c_char);
-        ::std::process::exit(1i32);
-    } else {
-        if echo_state {
-            flags.c_lflag |= libc::ECHO
-        } else {
-            flags.c_lflag &= libc::ECHO
-        }
-        if echo_nl_state {
-            flags.c_lflag |= libc::ECHONL
-        } else {
-            flags.c_lflag &= !libc::ECHONL
-        }
-        res = libc::tcsetattr(libc::fileno(stream), 0i32, &mut flags);
-        if res != 0i32 {
-            libc::perror(b"set_echo (tcsetattr)\x00" as *const u8 as *const libc::c_char);
-            ::std::process::exit(1i32);
-        } else {
-            return;
         }
     };
 }

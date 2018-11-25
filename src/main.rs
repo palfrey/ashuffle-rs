@@ -2,6 +2,8 @@
 #![allow(non_camel_case_types)]
 
 extern crate libc;
+extern crate easycurses;
+
 mod args;
 mod ashuffle;
 mod getpass;

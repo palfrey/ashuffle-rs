@@ -2,7 +2,6 @@ use libc;
 use args;
 use mpd;
 use list;
-use streams;
 use std::process;
 use shuffle;
 use rule;
@@ -307,12 +306,10 @@ pub unsafe fn shuffle_idle(
 pub unsafe fn get_mpd_password(mpd: *mut mpd::mpd_connection) {
     /* keep looping till we get a bad error, or we get a good password. */
     loop {
-        let pass: *mut libc::c_char = getpass::as_getpass(
-            streams::stdin_file(),
-            streams::stdout_file(),
-            b"mpd password: \x00" as *const u8 as *const libc::c_char,
+        let pass = getpass::as_getpass(
+            "mpd password: "
         );
-        mpd::mpd_run_password(mpd, pass);
+        mpd::mpd_run_password(mpd, pass.as_ptr() as *const libc::c_char);
         let err = mpd::mpd_connection_get_error(mpd);
         if err as libc::c_uint == mpd::MPD_ERROR_SUCCESS as libc::c_int as libc::c_uint {
             return;

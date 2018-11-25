@@ -8,6 +8,7 @@ name = "ashuffle"
 
 [dependencies]
 libc = { git = "https://github.com/palfrey/libc.git", branch="strcase-various"}
+easycurses = "0.12"
 
 [build-dependencies]
 cc = "1"
