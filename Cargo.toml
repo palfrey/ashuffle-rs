@@ -7,7 +7,7 @@ publish = false
 name = "ashuffle"
 
 [dependencies]
-libc = { path = "../libc"}
+libc = { git = "https://github.com/palfrey/libc.git", branch="strcase-various"}
 
 [build-dependencies]
 cc = "1"

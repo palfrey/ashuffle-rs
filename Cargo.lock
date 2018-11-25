@@ -3,7 +3,7 @@ name = "ashuffle"
 version = "0.0.0"
 dependencies = [
  "cc 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)",
- "libc 0.2.43",
+ "libc 0.2.44 (git+https://github.com/palfrey/libc.git?branch=strcase-various)",
 ]
 
 [[package]]
@@ -13,7 +13,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "libc"
-version = "0.2.43"
+version = "0.2.44"
+source = "git+https://github.com/palfrey/libc.git?branch=strcase-various#9a04c39566ff085278119c410fe85ddfa8442736"
 
 [metadata]
 "checksum cc 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)" = "f159dfd43363c4d08055a07703eb7a3406b0dac4d0584d96965a3262db3c9d16"
+"checksum libc 0.2.44 (git+https://github.com/palfrey/libc.git?branch=strcase-various)" = "<none>"
