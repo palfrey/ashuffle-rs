@@ -14,19 +14,21 @@ pub struct ashuffle_options {
 }
 
 /* Enum representing the various state of the parser */
-pub type parse_state = libc::c_uint;
-// expecting queue buffer value
-pub const QUEUE_BUFFER: parse_state = 5;
-// expecting song list input file
-pub const IFILE: parse_state = 4;
-// expecting "queue_only" int value
-pub const QUEUE: parse_state = 3;
-// expecting rule value (like "modest mouse")
-pub const RULE_VALUE: parse_state = 2;
-// expecting a rule matcher (like "artist")
-pub const RULE: parse_state = 1;
-// Ready for anything!
-pub const NO_STATE: parse_state = 0;
+#[derive(PartialEq)]
+pub enum parse_state {
+    // expecting queue buffer value
+    QUEUE_BUFFER = 5,
+    // expecting song list input file
+    IFILE = 4,
+    // expecting "queue_only" int value
+    QUEUE = 3,
+    // expecting rule value (like "modest mouse")
+    RULE_VALUE = 2,
+    // expecting a rule matcher (like "artist")
+    RULE = 1,
+    // Ready for anything!
+    NO_STATE = 0
+}
 
 pub static mut ARGS_QUEUE_BUFFER_NONE: libc::c_uint = 0i32 as libc::c_uint;
 
@@ -47,7 +49,7 @@ pub unsafe fn ashuffle_options(
     argv: *mut *mut libc::c_char,
 ) -> libc::c_int {
     /* State for the state machine */
-    let mut state: parse_state = NO_STATE;
+    let mut state: parse_state = parse_state::NO_STATE;
     let mut match_field: *mut libc::c_char = 0 as *mut libc::c_char;
     let mut rule = rule::song_rule {
         type_0: rule::RULE_EXCLUDE,
@@ -59,7 +61,7 @@ pub unsafe fn ashuffle_options(
     let mut type_flag: libc::c_int = -1i32;
     let mut i: libc::c_int = 1i32;
     while i < argc {
-        let transable = state_can_trans(state);
+        let transable = state_can_trans(&state);
         if transable {
             type_flag = rule_type_from_flag(*argv.offset(i as isize))
         }
@@ -94,7 +96,7 @@ pub unsafe fn ashuffle_options(
                 flush_rule(state, opts, &mut rule);
                 rule::rule_init(&mut rule, type_flag as rule::rule_type);
                 type_flag = -1i32;
-                state = RULE
+                state = parse_state::RULE
             } else if 0 != transable as libc::c_int && 0 != check_flags(
                 *argv.offset(i as isize),
                 2i32 as libc::c_uint,
@@ -103,7 +105,7 @@ pub unsafe fn ashuffle_options(
             {
                 flush_rule(state, opts, &mut rule);
                 (*opts).check_uris = 0 != 0i32;
-                state = NO_STATE
+                state = parse_state::NO_STATE
             } else if 0 != transable as libc::c_int && 0 != check_flags(
                 *argv.offset(i as isize),
                 1i32 as libc::c_uint,
@@ -111,9 +113,9 @@ pub unsafe fn ashuffle_options(
             ) as libc::c_int
             {
                 flush_rule(state, opts, &mut rule);
-                state = QUEUE_BUFFER
+                state = parse_state::QUEUE_BUFFER
             } else if 0 != transable as libc::c_int
-                && (*opts).queue_only == 0i32 as libc::c_uint
+                && (*opts).queue_only == 0
                 && 0 != check_flags(
                     *argv.offset(i as isize),
                     2i32 as libc::c_uint,
@@ -121,7 +123,7 @@ pub unsafe fn ashuffle_options(
                 ) as libc::c_int
             {
                 flush_rule(state, opts, &mut rule);
-                state = QUEUE
+                state = parse_state::QUEUE
             } else if 0 != transable as libc::c_int
                 && (*opts).file_in.is_null()
                 && 0 != check_flags(
@@ -131,15 +133,15 @@ pub unsafe fn ashuffle_options(
                 ) as libc::c_int
             {
                 flush_rule(state, opts, &mut rule);
-                state = IFILE
-            } else if state as libc::c_uint == RULE as libc::c_int as libc::c_uint {
+                state = parse_state::IFILE
+            } else if state == parse_state::RULE {
                 match_field = *argv.offset(i as isize);
-                state = RULE_VALUE
-            } else if state as libc::c_uint == RULE_VALUE as libc::c_int as libc::c_uint {
+                state = parse_state::RULE_VALUE
+            } else if state == parse_state::RULE_VALUE {
                 rule::rule_add_criteria(&mut rule, match_field, *argv.offset(i as isize));
                 match_field = 0 as *mut libc::c_char;
-                state = RULE
-            } else if state as libc::c_uint == QUEUE as libc::c_int as libc::c_uint {
+                state = parse_state::RULE
+            } else if state == parse_state::QUEUE {
                 (*opts).queue_only =
                     libc::strtoul(*argv.offset(i as isize), 0 as *mut *mut libc::c_char, 10i32)
                         as libc::c_uint;
@@ -150,9 +152,9 @@ pub unsafe fn ashuffle_options(
                     );
                     return -1i32;
                 } else {
-                    state = NO_STATE
+                    state = parse_state::NO_STATE
                 }
-            } else if state as libc::c_uint == IFILE as libc::c_int as libc::c_uint {
+            } else if state == parse_state::IFILE {
                 if check_flags(
                     *argv.offset(i as isize),
                     1i32 as libc::c_uint,
@@ -165,8 +167,8 @@ pub unsafe fn ashuffle_options(
                         b"r\x00" as *const u8 as *const libc::c_char,
                     )
                 }
-                state = NO_STATE
-            } else if state as libc::c_uint == QUEUE_BUFFER as libc::c_int as libc::c_uint {
+                state = parse_state::NO_STATE
+            } else if state == parse_state::QUEUE_BUFFER {
                 (*opts).queue_buffer =
                     libc::strtoul(*argv.offset(i as isize), 0 as *mut *mut libc::c_char, 10i32)
                         as libc::c_uint;
@@ -176,7 +178,7 @@ pub unsafe fn ashuffle_options(
                     );
                     return -1i32;
                 } else {
-                    state = NO_STATE
+                    state = parse_state::NO_STATE
                 }
             } else {
                 eprintln!(
@@ -188,7 +190,7 @@ pub unsafe fn ashuffle_options(
             i += 1
         }
     }
-    if state as libc::c_uint == RULE_VALUE as libc::c_int as libc::c_uint {
+    if state == parse_state::RULE_VALUE {
         eprintln!(
             "No value supplied for match \'{:?}\'.",
             match_field,
@@ -208,7 +210,7 @@ pub unsafe fn flush_rule(
     opts: *mut ashuffle_options,
     rule: *mut rule::song_rule,
 ) -> libc::c_int {
-    if state as libc::c_uint == RULE as libc::c_int as libc::c_uint
+    if state == parse_state::RULE
         && (*rule).matchers.length > 0i32 as libc::c_uint
     {
         /* add the rule to the ruleset */
@@ -258,17 +260,11 @@ pub unsafe fn rule_type_from_flag(option: *mut libc::c_char) -> libc::c_int {
 /* check and see if we can transition to a new top-level
  * state from our current state */
 
-pub unsafe fn state_can_trans(state: parse_state) -> bool {
-    if state as libc::c_uint == NO_STATE as libc::c_int as libc::c_uint
-        || state as libc::c_uint == RULE as libc::c_int as libc::c_uint
-    {
-        return 0 != 1i32;
-    } else {
-        return 0 != 0i32;
-    };
+pub fn state_can_trans(state: &parse_state) -> bool {
+    return *state == parse_state::NO_STATE || *state == parse_state::RULE;
 }
 
-pub unsafe fn ashuffle_help() {
+pub fn ashuffle_help() {
     eprintln!("usage: ashuffle -h -n {{ ..opts..}} [-e PATTERN ...] [-o NUMBER] [-f FILENAME]
     
     Optional Arguments:
