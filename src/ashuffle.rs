@@ -209,17 +209,17 @@ pub unsafe fn try_enqueue(
             queue_songs_remaining = mpd::mpd_status_get_queue_length(status)
                 .wrapping_sub((mpd::mpd_status_get_song_pos(status) + 1i32) as libc::c_uint)
         }
-        let mut should_add: bool = 0 != 0i32;
+        let mut should_add: bool = false;
         /* Always add if we've progressed past the last song. Even if
          * --queue_buffer, we should have already enqueued a song by now. */
         if past_last {
-            should_add = 0 != 1i32
+            should_add = true
         } else if (*options).queue_buffer != args::ARGS_QUEUE_BUFFER_NONE
             && queue_songs_remaining < (*options).queue_buffer
         {
-            should_add = 0 != 1i32
+            should_add = true
         } else if queue_empty {
-            should_add = 0 != 1i32
+            should_add = true
         }
         /* Add another song to the list and restart the player */
         if should_add {
@@ -246,7 +246,7 @@ pub unsafe fn try_enqueue(
             }
             /* Immediately pause playback if mpd single mode is on */
             if mpd::mpd_status_get_single(status) {
-                if mpd::mpd_run_pause(mpd, 0 != 1i32) as libc::c_int != 1i32 {
+                if mpd::mpd_run_pause(mpd, true) as libc::c_int != 1i32 {
                     mpd_perror(mpd);
                 }
             }

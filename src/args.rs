@@ -35,7 +35,7 @@ pub static mut ARGS_QUEUE_BUFFER_NONE: libc::c_uint = 0i32 as libc::c_uint;
 pub unsafe fn ashuffle_init(opts: *mut ashuffle_options) -> libc::c_int {
     (*opts).queue_only = 0i32 as libc::c_uint;
     (*opts).file_in = 0 as *mut libc::FILE;
-    (*opts).check_uris = 0 != 1i32;
+    (*opts).check_uris = true;
     list::list_init(&mut (*opts).ruleset);
     (*opts).queue_buffer = ARGS_QUEUE_BUFFER_NONE;
     return 0i32;
@@ -104,7 +104,7 @@ pub unsafe fn ashuffle_options(
             ) as libc::c_int
             {
                 flush_rule(state, opts, &mut rule);
-                (*opts).check_uris = 0 != 0i32;
+                (*opts).check_uris = false;
                 state = parse_state::NO_STATE
             } else if 0 != transable as libc::c_int && 0 != check_flags(
                 *argv.offset(i as isize),
@@ -232,12 +232,12 @@ pub unsafe fn check_flags(
     count: libc::c_uint,
     items: *mut *const libc::c_char,
 ) -> bool {
-    let mut out: bool = 0 != 0i32;
+    let mut out: bool = false;
     let mut i: libc::c_int = 0i32;
     while (i as libc::c_uint) < count {
         if libc::strcasecmp(to_check, *items.offset(i as isize)) == 0i32 {
             /* don't break, we need to process the arguments */
-            out = 0 != 1i32
+            out = true
         }
         i += 1
     }

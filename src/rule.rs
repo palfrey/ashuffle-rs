@@ -78,14 +78,14 @@ pub unsafe fn rule_match(rule: *mut song_rule, song: *const mpd::mpd_song) -> bo
                 /* On exclusion matches, if any tag check succeeds, we have
                  * a failed match. */
                 if (*rule).type_0 as libc::c_uint == RULE_EXCLUDE as libc::c_int as libc::c_uint {
-                    return 0 != 0i32;
+                    return false;
                 }
             }
         }
         i +=1;
     }
     /* If we've passed all the tests, we have a match */
-    return 0 != 1i32;
+    return true;
 }
 /* Free the memory used to store this rule */
 

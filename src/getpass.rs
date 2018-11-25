@@ -18,7 +18,7 @@ pub unsafe fn as_getpass(
         libc::perror(b"getpass (fwrite)\x00" as *const u8 as *const libc::c_char);
         ::std::process::exit(1i32);
     } else {
-        set_echo(out_stream, 0 != 0i32, 0 != 1i32);
+        set_echo(out_stream, false, true);
         let mut result = 0 as *mut libc::c_char;
         let mut result_size = 0i32 as libc::size_t;
         let result_len: libc::ssize_t = libc::getline(&mut result, &mut result_size, in_stream);
@@ -26,7 +26,7 @@ pub unsafe fn as_getpass(
             libc::perror(b"getline (getpass)\x00" as *const u8 as *const libc::c_char);
             ::std::process::exit(1i32);
         } else {
-            set_echo(out_stream, 0 != 1i32, 0 != 1i32);
+            set_echo(out_stream, true, true);
             return result;
         }
     };
