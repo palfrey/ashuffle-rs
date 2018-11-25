@@ -1,5 +1,9 @@
-ashuffle
-========
+ashuffle-rs
+===========
+
+This is mostly just a Rustified version of https://github.com/joshkunz/ashuffle so a lot of this is the same info
+
+---
 
 > __Maintainer's Note:__ Even though there have been no new commits on this repo in over a year, it is not dead, it just isn't broken yet. I actively maintain this repo, and use this software daily. If you find any bugs, please open an issue.
 
@@ -188,25 +192,16 @@ or on OS X using brew:
 Download the [latest release][latest], untar/unzip it and then cd into the
 directory and run:
 
-    make
+    cargo build
 
 Then run
 
-    sudo make install
+    cargo install --path .
 
-to install the binary. If you want to use a prefix other than `/usr/local` you
-can supply an alternate by running `make install` like so:
-
-    sudo make prefix=<prefix> install
-
-You can uninstall the program later by running
-
-    sudo make uninstall
-
-**Note:**  You'll have to supply the prefix again if you used a custom prefix.
+to install the binary.
 
 Oh, and in the case you're wondering why it's called 'ashuffle' it's
 because it implements 'automatic shuffle' mode for mpd.
 
   [1]: https://github.com/Joshkunz/binfiles/blob/4a4e9b7c845b59ba1c0b68edc84e6cf1972dbc73/ashuffle
-  [latest]: https://github.com/Joshkunz/ashuffle/releases/tag/v1.0.1
+  [latest]: https://github.com/palfrey/ashuffle-rs/releases
