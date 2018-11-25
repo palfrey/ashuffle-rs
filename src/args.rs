@@ -13,8 +13,6 @@ pub struct ashuffle_options {
     pub queue_buffer: libc::c_uint,
 }
 
-pub type rule_type = libc::c_uint;
-pub const RULE_EXCLUDE: rule_type = 0;
 /* Enum representing the various state of the parser */
 pub type parse_state = libc::c_uint;
 // expecting queue buffer value
@@ -52,7 +50,7 @@ pub unsafe fn ashuffle_options(
     let mut state: parse_state = NO_STATE;
     let mut match_field: *mut libc::c_char = 0 as *mut libc::c_char;
     let mut rule = rule::song_rule {
-        type_0: RULE_EXCLUDE,
+        type_0: rule::RULE_EXCLUDE,
         matchers: list::list {
             length: 0,
             list: 0 as *mut list::node,
@@ -94,7 +92,7 @@ pub unsafe fn ashuffle_options(
         } else {
             if type_flag != -1i32 {
                 flush_rule(state, opts, &mut rule);
-                rule::rule_init(&mut rule, type_flag as rule_type);
+                rule::rule_init(&mut rule, type_flag as rule::rule_type);
                 type_flag = -1i32;
                 state = RULE
             } else if 0 != transable as libc::c_int && 0 != check_flags(
@@ -252,7 +250,7 @@ pub unsafe fn rule_type_from_flag(option: *mut libc::c_char) -> libc::c_int {
         b"-e\x00" as *const u8 as *const libc::c_char,
     ];
     if check_flags(option, 2i32 as libc::c_uint, items.as_mut_ptr()) {
-        return RULE_EXCLUDE as libc::c_int;
+        return rule::RULE_EXCLUDE as libc::c_int;
     } else {
         return -1i32;
     };
