@@ -1,5 +1,6 @@
 ashuffle-rs
 ===========
+[![Build Status](https://travis-ci.org/palfrey/ashuffle-rs.svg?branch=master)](https://travis-ci.org/palfrey/ashuffle-rs)
 
 This is mostly just a Rustified version of https://github.com/joshkunz/ashuffle so a lot of this is the same info
 
